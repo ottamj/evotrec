@@ -5,36 +5,48 @@
 """
 evotrec.py
 
-This script performs topological recurrence analysis of genome alignments using persistent homology.
+This script performs topological recurrence analysis of genome alignments using
+persistent homology.
+
+References:
+    - http://arxiv.org/abs/2106.07292
+    - https://arxiv.org/abs/2207.03394
+
 
 Functions:
     retrieve_metadata(timeseries_flag, refseq_id, input_afasta):
-        Retrieves metadata from the input FASTA file, including the reference sequence, dates, and time range.
+        Retrieves metadata from the input FASTA file, including the reference sequence,
+        dates, and time range.
 
     murit(in_dist, out_timedist, start_date, timerange, dates):
-        Converts Hamming distances to time distances and writes the results to a file.
+        Converts Hamming distances to Rips transformed distances and writes the results
+        to a file.
 
     retrieve_snv_cycles(in_ripser):
-        Analyzes cycles from Ripser output and retrieves single nucleotide variant (SNV) cycles.
+        Analyzes cycles from Ripser output and retrieves single nucleotide variant (SNV)
+        cycles.
 
     retrieve_sequences_in_cycles(snv_indices, afasta_path):
         Retrieves sequences corresponding to the SNV indices from the input FASTA file.
 
     retrieve_mutations_in_cycles(snv_cycles, sequences_in_snv_cycles, refseq):
-        Identifies mutations in the SNV cycles and associates them with the reference sequence.
+        Identifies mutations in the SNV cycles and associates them with the reference
+        sequence.
 
     expand_timeseries(mutation, count, timerange):
         Expands the mutation count into a time series format.
 
     tri_analysis(filename, timeseries_flag, timerange, mutations_in_snv_cycles):
-        Computes the topological recurrence index (tRI) and writes the results to a CSV file.
+        Computes the topological recurrence index (tRI) and writes the results to a CSV
+        file.
 
 Main Execution:
-    Parses command-line arguments and performs the topological recurrence analysis workflow, including:
+    Parses command-line arguments and performs the topological recurrence analysis
+    workflow:
         - Retrieving metadata
         - Calculating Hamming distances
-        - Converting distances to time distances (if timeseries flag is set)
-        - Running Ripser for persistent homology analysis
+        - Converting distances to Rips transformed distances (if timeseries flag is set)
+        - Running Ripser (with representatives output) for persistent homology analysis
         - Analyzing SNV cycles
         - Retrieving sequences and mutations in cycles
         - Performing tRI analysis and writing results to a CSV file
@@ -46,14 +58,25 @@ from datetime import datetime
 import hammingdist
 
 
-def retrieve_metadata(timeseries_flag, refseq_id, input_afasta):
+def validate_date(date_str, context):
+    """
+    Validates a date string in the format 'YYYY-MM-DD'
+    and raises a ValueError with context if invalid.
+    """
+    try:
+        datetime.strptime(date_str, "%Y-%m-%d")
+    except ValueError as e:
+        raise ValueError(f"Invalid date in {context}: {e}")
+
+
+def retrieve_metadata(input_afasta, refseq_id, timeseries_flag):
     """
     Retrieve metadata from a given FASTA file.
 
     Parameters:
-    timeseries_flag (bool): Flag indicating if the sequences are part of a time series.
-    refseq_id (str): The reference sequence identifier.
     input_afasta (str): Path to the input FASTA file.
+    refseq_id (str): The reference sequence identifier.
+    timeseries_flag (bool): Flag indicating if the sequences are part of a time series.
 
     Returns:
     tuple: A tuple containing:
@@ -62,29 +85,22 @@ def retrieve_metadata(timeseries_flag, refseq_id, input_afasta):
         - dates (list): List of dates extracted from the sequence titles.
         - start_date (str or None): The start date of the time series, if applicable.
         - end_date (str or None): The end date of the time series, if applicable.
-        - timerange (int): The number of days in the time range, or 1 if not a time series.
+        - timerange (int): The number of days in the time range or 1 if not time series.
 
     Raises:
-    SystemExit: If an invalid date is found in the sequence titles or if the reference sequence is not found.
+        ValueError: If an invalid date is found in the sequence titles
+        or if the reference sequence is not found.
     """
-    # Print the preparation message
-    print(f"Preparing {args.afasta}...\n")
+    print(f"Preparing {input_afasta}...\n")
 
-    # Initialize variables
     filename = input_afasta.split(".")[0]
     number_of_sequences = 0
     refseq = ""
     dates = []
 
-    # If timeseries_flag is set, process the sequences as part of a time series
     if timeseries_flag:
-        try:
-            # Extract and validate the start date from the reference sequence ID
-            start_date = refseq_id.split("|")[-2]
-            datetime.strptime(start_date, "%Y-%m-%d")
-        except ValueError:
-            print(f"Invalid date in sequence {refseq_id}.")
-            quit()
+        start_date = refseq_id.split("|")[-2]
+        validate_date(start_date, f"sequence {refseq_id}")
 
         end_date = start_date
         with open(input_afasta, "r") as fasta_file:
@@ -92,24 +108,20 @@ def retrieve_metadata(timeseries_flag, refseq_id, input_afasta):
                 number_of_sequences += 1
                 if title == refseq_id:
                     refseq = seq
-                try:
-                    # Extract and validate the date from the sequence title
-                    date = title.split("|")[-2]
-                    datetime.strptime(date, "%Y-%m-%d")
-                except ValueError:
-                    print(f"Invalid date in sequence {title}.")
-                    quit()
-                # Check if the date is before the reference sequence date
+
+                date = title.split("|")[-2]
+                validate_date(date, f"sequence {title}")
+
                 if date < start_date:
-                    print(
-                        f"Date before reference sequence date ({start_date}) in sequence {title}."
+                    raise ValueError(
+                        f"Date before reference sequence date ({start_date})\
+                        in sequence {title}."
                     )
-                    quit()
                 elif date > end_date:
                     end_date = date
+
                 dates.append(date)
 
-        # Calculate the time range in days
         timerange = (
             datetime.fromisoformat(end_date) - datetime.fromisoformat(start_date)
         ).days + 1
@@ -117,7 +129,6 @@ def retrieve_metadata(timeseries_flag, refseq_id, input_afasta):
         print(f"End date: {end_date}")
         print(f"Time range: {timerange} days\n")
     else:
-        # If timeseries_flag is not set, just count the sequences and find the reference sequence
         with open(input_afasta, "r") as fasta_file:
             for title, seq in SimpleFastaParser(fasta_file):
                 number_of_sequences += 1
@@ -127,10 +138,8 @@ def retrieve_metadata(timeseries_flag, refseq_id, input_afasta):
         end_date = None
         timerange = 1
 
-    # Check if the reference sequence was found
     if not refseq:
-        print(f"Reference sequence not found.")
-        quit()
+        raise ValueError("Reference sequence not found.")
 
     print(f"Number of sequences: {number_of_sequences}\n")
 
@@ -139,29 +148,42 @@ def retrieve_metadata(timeseries_flag, refseq_id, input_afasta):
 
 def murit(in_dist, out_timedist, start_date, timerange, dates):
     """
-    Processes a distance file and writes a time distance file based on given parameters.
+    Implements a simplified version of the Rips transformation, outlined in the
+    referenced article, for sequence alignments with temporal information.
+
+    The function reads the input distance file line by line, processes each line to
+    calculate a Rips transformed distance based on the given parameters, and writes the
+    results to the output file. The transformed distance is calculated as follows:
+        - If the distance is 1, the transformed distance is the maximum number of days
+            from the reference start date for the given indices.
+        - If the distance is 2, the transformed distance is `timerange + 1`.
+        - If the distance is 3, the transformed distance is `timerange + 2`.
+
+    References:
+        - https://arxiv.org/abs/2207.03394
 
     Args:
-        in_dist (str): Path to the input distance file. The file should contain lines with three integers separated by spaces.
-        out_timedist (str): Path to the output time distance file.
-        start_date (str): The reference start date in ISO format (YYYY-MM-DD).
-        timerange (int): A base value used to calculate time distances for certain conditions.
-        dates (list of str): A list of dates in ISO format (YYYY-MM-DD) corresponding to the indices in the distance file.
+        in_dist (str): Path to the input distance file.
+            The file should contain lines with three integers separated by spaces,
+            representing two indices and a distance (1, 2, or 3).
+        out_timedist (str): Path to the output file.
+        start_date (str): The reference start date in ISO format (YYYY-MM-DD)
+            used to compute the temporal distance in days.
+        timerange (int): The base value added to distances 2 or larger.
+        dates (list of str): A list of dates in ISO format (YYYY-MM-DD), where
+             each date corresponds to an index in the distance file.
 
-    The function reads the input distance file line by line, processes each line to calculate a time distance based on the given parameters,
-    and writes the results to the output time distance file. The time distance is calculated as follows:
-        - If the distance is 1, the time distance is the maximum number of days from the reference start date for the given indices.
-        - If the distance is 2, the time distance is `timerange + 1`.
-        - If the distance is 3, the time distance is `timerange + 2`.
+    Output:
+        The result is written to `out_timedist`
+        Each line contains three integers: two indices and the transformed distance.
     """
     with open(in_dist, "r") as dist_file, open(out_timedist, "w") as timedist_file:
         for line in dist_file:
-            # Parse the line to get the indices and distance
             i, j, dist = [int(x) for x in line.strip().split(" ")]
 
-            # Calculate the time distance based on the given distance
+            # Calculate the transformed distance based on the given distance
             if dist == 1:
-                # Calculate the number of days from the reference start date for the given indices
+                # The transformed distance is the maximum number of days
                 days_from_refseq = [
                     (
                         datetime.fromisoformat(dates[k])
@@ -170,16 +192,12 @@ def murit(in_dist, out_timedist, start_date, timerange, dates):
                     + 1
                     for k in [i, j]
                 ]
-                # The time distance is the maximum number of days
                 timedist = max(days_from_refseq)
-            elif dist == 2:
-                # For distance 2, the time distance is timerange + 1
-                timedist = timerange + 1
-            elif dist == 3:
-                # For distance 3, the time distance is timerange + 2
-                timedist = timerange + 2
+            else:
+                # For distance 2 or larger, add the timerange to the distance
+                timedist = timerange + dist - 1
 
-            # Write the calculated time distance to the output file
+            # Write the calculated distance to the output file
             timedist_file.write(f"{i} {j} {timedist}\n")
 
 
@@ -187,20 +205,43 @@ def retrieve_snv_cycles(in_ripser):
     """
     Analyzes the output from Ripser to retrieve single nucleotide variant (SNV) cycles.
 
-    This function reads a Ripser output file, identifies cycles in dimension 1, and extracts
-    the cycles and their corresponding edges. It returns the cycles and the indices of the
-    SNVs involved in these cycles.
+    This function reads a Ripser output file, identifies cycles in dimension 1, and
+    extracts the cycle representatives. It returns the cycle representative and the
+    indices of the sequences involved in these cycles.
+
+
 
     Args:
         in_ripser (str): The file path to the Ripser output file.
 
     Returns:
         tuple: A tuple containing:
-            - snv_cycles (list): A list of cycles, where each cycle is represented as a list of edges.
-              Each edge is a list containing two vertices and the length of the edge.
-            - snv_indices (list): A sorted list of unique SNV indices involved in the cycles.
+            - snv_cycles (list): A list of cycles, where each cycle is represented
+                as a list of edges. Each edge is a list containing two vertices and
+                the length of the edge.
+            - snv_indices (list): A sorted list of unique sequences in the cycles.
+            TODO: why are these called snv_indices? These are not SNVs but sequence IDs
+
+    Example:
+        The input file should have the following structure:
+
+        ```
+        ... (other lines)
+        persistent homology intervals in dim 0:
+        [0,1):  {[2], [3]}
+        ... (other lines)
+        [0, ):  {[3]:1}
+        persistent homology intervals in dim 1:
+        [1,2):
+        {[0,1] (1), [0,2] (1), [1,3] (1), [2,3] (1)}
+        {[0,1] (1), [0,2] (1), [1,3] (1), [2,3] (1)}
+        ... (other lines)
+        ```
+
+        Each interval [b,d) is a persistence interval, each {...} its representative.
+        The lines under "persistence intervals in dim 1:" are the ones that are
+        processed to extract the cycle representatives.
     """
-    # Print a message indicating the start of cycle analysis
     print("Analyzing cycles...")
 
     # Initialize variables to store batch of cycles and individual cycle
@@ -214,21 +255,22 @@ def retrieve_snv_cycles(in_ripser):
             # Remove newline characters and strip leading/trailing whitespace
             stripped_line = line.replace("\n", " ").strip()
 
-            # Check if the line indicates the start of persistent homology intervals in dimension 1
+            # Set flag to start processing the lines for 1d cycles
             if "persistent homology intervals in dim 1:" in stripped_line:
                 go_flag = True
 
             # If the flag is set, process the lines to extract cycles
-            if go_flag == True:
+            if go_flag is True:
                 if stripped_line[0] == "[":
-                    # If the line starts with '[', it indicates the start of a new cycle
+                    # If the line starts with '[' it's the start of a new cycle
                     batch.append(" ".join(cycle))
                     cycle = []
                 cycle.append(stripped_line)
 
-        # Append the last cycle to the batch and remove the first empty entry
+        # Append the last cycle to the batch (and remove the first entry?)
         batch.append(" ".join(cycle))
-        batch.pop(0)
+        batch.pop(0)  # TODO: why is this necessary?
+
     # Initialize lists to store SNV cycles and a set to store unique SNV indices
     snv_cycles = []
     snv_indices = set()
@@ -236,7 +278,6 @@ def retrieve_snv_cycles(in_ripser):
     # Iterate over each raw cycle in the batch
     for raw_cycle in batch:
         zero_edge_flag = False  # Flag to check for zero-length edges
-        interval_string = raw_cycle.split(":")[0]  # Extract interval string
         cycle = []  # List to store edges and their lengths for the current cycle
         edges = []  # List to store edges for the current cycle
 
@@ -284,36 +325,43 @@ def retrieve_sequences_in_cycles(snv_indices, afasta_path):
     sequences = {}
     with open(afasta_path, "r") as file:
         for i, (_, seq) in enumerate(SimpleFastaParser(file)):
-            try:
-                # Check if the current index matches the first index in snv_indices
-                if i == snv_indices[0]:
-                    sequences[i] = seq  # Store the sequence in the dictionary
-                    snv_indices.pop(0)  # Remove the first index from snv_indices
-            except:
-                break
+            # try:
+            #     # Check if the current index matches the first index in snv_indices
+            #     if i == snv_indices[0]:
+            #         sequences[i] = seq  # Store the sequence in the dictionary
+            #         snv_indices.pop(0)  # Remove the first index from snv_indices
+            # except IndexError:
+            #     break
+            # TODO: I didn't understand the use of try-except above and replaced it
+            if not snv_indices:
+                break  # Exit the loop if snv_indices is empty
+            if i == snv_indices[0]:
+                sequences[i] = seq  # Store the sequence in the dictionary
+                snv_indices.pop(0)  # Remove the first index from snv_indices
 
     return sequences
 
 
 def retrieve_mutations_in_cycles(snv_cycles, sequences_in_snv_cycles, refseq):
     """
-    Retrieve mutations in cycles of single nucleotide variants (SNVs).
+    Retrieve mutations in SNV cycles.
 
-    This function identifies mutations in cycles of SNVs by comparing sequences
+    This function identifies mutations in SNV cycles by comparing sequences
     in each cycle to a reference sequence. It returns a list of mutations for
     each cycle, including the site of mutation, the original and mutated bases,
     the edge in the cycle, and the maximum length of the edges in the cycle.
 
     Args:
         snv_cycles (list): A list of cycles, where each cycle is a list of tuples.
-                           Each tuple contains an edge (a pair of vertices) and a length.
-        sequences_in_snv_cycles (dict): A dictionary mapping vertices to their corresponding sequences.
+            Each tuple contains an edge (a pair of vertices) and a length.
+        sequences_in_snv_cycles (dict): A dictionary mapping vertices to their
+            corresponding sequences.
         refseq (str): The reference sequence to compare against.
 
     Returns:
-        list: A list of lists, where each inner list contains mutations for a cycle.
-              Each mutation is represented as a list containing the site of mutation,
-              the original base, the mutated base, the edge, and the maximum length of the edges in the cycle.
+        list: A list of lists, where each inner list collects the mutations that
+            appear in a cycle. Each mutation is represented as a list
+            of the form [(POS, REF, ALT), edge, max_length].
     """
     mutations_in_snv_cycles = []
 
@@ -329,11 +377,10 @@ def retrieve_mutations_in_cycles(snv_cycles, sequences_in_snv_cycles, refseq):
 
             # Compare sequences site by site
             for site, pair in enumerate(
-                zip(*sequence_pair), 1
-            ):  # count of sites is 1-indexed
-                if (pair[0] != pair[1]) and (
-                    "-" not in pair
-                ):  # Check for mutations and ignore gaps
+                zip(*sequence_pair), 1  # count of sites is 1-indexed
+            ):
+                if (pair[0] != pair[1]) and ("-" not in pair):
+                    # Check for mutations and ignore gaps
                     if pair[0] == refseq[site - 1]:
                         mutations_per_cycle.append(
                             [(site, pair[0], pair[1]), edge, length]
@@ -343,15 +390,14 @@ def retrieve_mutations_in_cycles(snv_cycles, sequences_in_snv_cycles, refseq):
                             [(site, pair[1], pair[0]), edge, length]
                         )
 
-        lengths = [length for mutation, edge, length in mutations_per_cycle]
+        lengths = [length for _, _, length in mutations_per_cycle]
 
         # Determine the maximum length in the cycle
         max_length = max(lengths) if lengths else 0
 
         # Update mutations with the maximum length
         mutations_per_cycle_max_length = [
-            [mutation, edge, max_length]
-            for mutation, edge, length in mutations_per_cycle
+            [mutation, edge, max_length] for mutation, edge, _ in mutations_per_cycle
         ]
 
         # Append the processed mutations for the current cycle
@@ -362,12 +408,12 @@ def retrieve_mutations_in_cycles(snv_cycles, sequences_in_snv_cycles, refseq):
 
 def expand_timeseries(mutation, count, timerange):
     """
-    Expands a timeseries based on mutation data and count over a specified time range.
+    Helper function to generate a string representation of tRI timeseries data, used
+    in writing a CSV file.
 
     Args:
-        mutation (list): A list containing mutation data. The first element is expected to be a string,
-                         and the second and third elements are expected to be integers.
-        count (list): A list of integers representing counts for each day.
+        mutation (tuple): A tuple representing a mutation in the form (POS, REF, ALT)
+        count (list): A list of integers representing tRI counts for each day.
         timerange (int): The number of days to expand the timeseries over.
 
     Returns:
@@ -379,10 +425,7 @@ def expand_timeseries(mutation, count, timerange):
 
     # Iterate over the range of days
     for day in range(timerange):
-        try:
-            tri = tri + count[day + 1]
-        except:
-            pass
+        tri += count.get(day + 1, 0)
 
         # Append the current value of tri to the timeseries
         tri_timeseries.append(str(tri))
@@ -390,16 +433,16 @@ def expand_timeseries(mutation, count, timerange):
     return ",".join(tri_timeseries)
 
 
-def tri_analysis(filename, timeseries_flag, timerange, mutations_in_snv_cycles):
+def tri_analysis(mutations_in_snv_cycles, timerange, output_filename, timeseries_flag):
     """
-    Analyzes temporal recurrence index (tRI) from mutation data and writes the results to a CSV file.
+    Performs tRI analysis from mutation data and writes the results to a CSV file.
 
     Parameters:
-    filename (str): The base name of the output CSV file.
-    timeseries_flag (bool): If True, the output CSV will include a timeseries header.
+    mutations_in_snv_cycles (list): A list of mutation cycles, where each cycle is
+        a list of the form [(POS, REF, ALT), edge, max_length].
     timerange (int): The range of time points to consider in the analysis.
-    mutations_in_snv_cycles (list): A list of mutation cycles, where each cycle is a list of tuples.
-                                     Each tuple contains (mutation, edge, day).
+    filename (str): The base name of the output CSV file (.csv extension will be added)
+    timeseries_flag (bool): If True, output CSV will capture the tRI timeseries data.
     """
     print("Computing tRI...\n")
     tri_count = {}
@@ -410,11 +453,7 @@ def tri_analysis(filename, timeseries_flag, timerange, mutations_in_snv_cycles):
         noted_snvs_in_cycle = []
 
         # Iterate through each mutation, edge, and day in the mutations
-        for (
-            mutation,
-            edge,
-            day,
-        ) in mutations:  # edge length is time difference to start date + 1
+        for mutation, edge, day in mutations:
             if (mutation not in noted_snvs_in_cycle) and (edge not in noted_edges):
                 tri_count.setdefault(mutation, {})
                 tri_count[mutation].setdefault(day, 0)
@@ -425,7 +464,7 @@ def tri_analysis(filename, timeseries_flag, timerange, mutations_in_snv_cycles):
                 noted_edges.append(edge)
 
     # Write the results to a CSV file
-    with open(f"{filename}.csv", "w") as out_csv:
+    with open(f"{output_filename}.csv", "w") as out_csv:
         if timeseries_flag:
             # Write the header for timeseries data
             out_csv.write(
@@ -446,11 +485,10 @@ def tri_analysis(filename, timeseries_flag, timerange, mutations_in_snv_cycles):
     if len(tri_count) == 0:
         print("No tRI signal found.")
     else:
-        print(f"Results written to {filename}.csv.")
+        print(f"Results written to {output_filename}.csv.")
 
 
 if __name__ == "__main__":
-
     import argparse
     import textwrap
 
@@ -475,20 +513,23 @@ if __name__ == "__main__":
         print("Invalid arguments.")
         quit()
 
-    # Print program header    
-    print(textwrap.dedent("""
+    # Print program header
+    print(
+        textwrap.dedent(
+            """
         ===============================================================
         EVOtRec -- Topological recurrence analysis of genome alignments
         (c) 2024 Andreas Ott
         ===============================================================
-        """)
+        """
+        )
     )
 
     # Retrieve metadata from input files
     filename, refseq, dates, start_date, end_date, timerange = retrieve_metadata(
-        timeseries_flag=args.timeseries,
-        refseq_id=args.refseq_id,
         input_afasta=args.afasta,
+        refseq_id=args.refseq_id,
+        timeseries_flag=args.timeseries,
     )
 
     # Perform Hamming distance calculation
@@ -497,7 +538,7 @@ if __name__ == "__main__":
     data.dump_sparse(filename + ".dist", threshold=3)
 
     # Perform MuRiT and Ripser analysis based on timeseries flag
-    if args.timeseries != False:
+    if args.timeseries is not False:
         print("MuRiT...")
         murit(
             in_dist=filename + ".dist",
@@ -508,12 +549,14 @@ if __name__ == "__main__":
         )
         print("Ripser...")
         os.system(
-            f"ripser --dim 1 --format sparse --threshold {timerange+1} {filename + '.timedist'} > {filename + '.ripser'}"
+            f"ripser --dim 1 --format sparse --threshold {timerange+1}\
+                {filename + '.timedist'} > {filename + '.ripser'}"
         )
     else:
         print("Ripser...")
         os.system(
-            f"ripser --dim 1 --format sparse --threshold 2 {filename + '.dist'} > {filename + '.ripser'}"
+            f"ripser --dim 1 --format sparse --threshold 2\
+                {filename + '.dist'} > {filename + '.ripser'}"
         )
 
     # Retrieve SNV cycles and sequences
@@ -532,8 +575,8 @@ if __name__ == "__main__":
 
     # Perform tRI analysis and write results to a CSV file
     tri_analysis(
-        filename=filename,
-        timeseries_flag=args.timeseries,
-        timerange=timerange,
         mutations_in_snv_cycles=mutations_in_snv_cycles,
+        timerange=timerange,
+        output_filename=filename,
+        timeseries_flag=args.timeseries,
     )
