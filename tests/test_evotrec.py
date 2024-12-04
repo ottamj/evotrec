@@ -87,8 +87,8 @@ def test_murit(mocker, setup_data):
 
     # Call the function under test
     murit(
-        in_dist=data["in_dist"],
-        out_timedist=data["out_timedist"],
+        input_distance_file=data["in_dist"],
+        output_distance_file=data["out_timedist"],
         start_date=data["start_date"],  # Corrected parameter name
         timerange=data["timerange"],
         dates=data["dates"],

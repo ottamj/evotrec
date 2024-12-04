@@ -1,7 +1,7 @@
 # EVOTREC
 
 ## Overview
-EVOTREC is a Python module designed for topological recurrence analysis of genome alignments using persistent homology. It processes sequence alignment data, calculates Hamming distances, converts them to time distances, and performs persistent homology analysis to identify single nucleotide variant (SNV) cycles. The module then retrieves sequences and mutations in these cycles and performs topological recurrence index (tRI) analysis.
+EVOTREC is a Python module designed for topological recurrence analysis of genome alignments using persistent homology. It processes sequence alignment data, calculates Hamming distances, converts them to time distances, and performs persistent homology analysis to identify single nucleotide variant (SNV) cycles. The module then retrieves sequences and mutations in these cycles and performs topological recurrence index (tRI) analysis. 
 
 ## Usage
 To use the EVOTREC module, follow these steps:
@@ -23,7 +23,7 @@ To use the EVOTREC module, follow these steps:
     ```
     - `<input_fasta>`: Path to the input FASTA file.
     - `<refseq_id>`: Reference sequence ID in the FASTA file.
-    - `--timeseries`: Optional flag to enable timeseries analysis.
+    - `--timeseries`: Optional flag to enable timeseries analysis. Requires sequence headers to contain dates in the format `YYYY-MM-DD`.
 
 4. **Output Files**:
     The script generates several output files:
@@ -44,7 +44,11 @@ You can install these dependencies using the provided [requirements.txt](http://
 pip install -r requirements.txt
 ```
 
+TODO: Add installation instructions and links for ripser
+
 ## Testing
+TODO: This is internal info, remove before publishing.
+
 You can test the functionality of EVOTREC using the provided unit tests.
 
 Either run pytest
@@ -53,7 +57,7 @@ pytest
 ```
 
 ## Example
-You can run evotrec on the provided test data directly as follows
+You can run evotrec on the provided test data as follows
 ```sh
 python evotrec.py tests/example.fasta "hCoV-19/Wuhan/WIV04/2019|EPI_ISL_402124|2019-12-30|China" --timeseries
 ```
@@ -96,11 +100,11 @@ and output files
 If you use EVOTREC in your research, please cite the following references:
 
 ```bibtex
-@article{bleher2021topological,
+@article{bleher2023topological,
   title={Topological data analysis identifies emerging adaptive mutations in SARS-CoV-2},
-  author={Bleher, Michael and Hahn, Lukas and Patino-Galindo, Juan Angel and Carriere, Mathieu and Bauer, Ulrich and Rabadan, Raul and Ott, Andreas},
+  author={Michael Bleher and Lukas Hahn and Maximilian Neumann and Juan Angel Patino-Galindo and Mathieu Carriere and Ulrich Bauer and Raul Rabadan and Andreas Ott},
   journal={arXiv preprint arXiv:2106.07292},
-  year={2021},
+  year={2023},
   url={https://arxiv.org/abs/2106.07292}
 }
 

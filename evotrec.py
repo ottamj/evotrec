@@ -146,7 +146,7 @@ def retrieve_metadata(input_afasta, refseq_id, timeseries_flag):
     return filename, refseq, dates, start_date, end_date, timerange
 
 
-def murit(in_dist, out_timedist, start_date, timerange, dates):
+def murit(input_distance_file, output_distance_file, start_date, timerange, dates):
     """
     Implements a simplified version of the Rips transformation, outlined in the
     referenced article, for sequence alignments with temporal information.
@@ -163,7 +163,7 @@ def murit(in_dist, out_timedist, start_date, timerange, dates):
         - https://arxiv.org/abs/2207.03394
 
     Args:
-        in_dist (str): Path to the input distance file.
+        input_distance_file (str): Path to the input distance file.
             The file should contain lines with three integers separated by spaces,
             representing two indices and a distance (1, 2, or 3).
         out_timedist (str): Path to the output file.
@@ -177,7 +177,9 @@ def murit(in_dist, out_timedist, start_date, timerange, dates):
         The result is written to `out_timedist`
         Each line contains three integers: two indices and the transformed distance.
     """
-    with open(in_dist, "r") as dist_file, open(out_timedist, "w") as timedist_file:
+    with open(input_distance_file, "r") as dist_file, open(
+        output_distance_file, "w"
+    ) as timedist_file:
         for line in dist_file:
             i, j, dist = [int(x) for x in line.strip().split(" ")]
 
@@ -421,14 +423,14 @@ def expand_timeseries(mutation, count, timerange):
     """
     # Initialize the timeseries list with mutation details
     tri_timeseries = [str(mutation[0]), mutation[1], mutation[2]]
-    tri = 0
+    tri_value = 0
 
     # Iterate over the range of days
     for day in range(timerange):
-        tri += count.get(day + 1, 0)
+        tri_value += count.get(day + 1, 0)
 
         # Append the current value of tri to the timeseries
-        tri_timeseries.append(str(tri))
+        tri_timeseries.append(str(tri_value))
 
     return ",".join(tri_timeseries)
 
@@ -534,15 +536,15 @@ if __name__ == "__main__":
 
     # Perform Hamming distance calculation
     print("Hammingdist...")
-    data = hammingdist.from_fasta(args.afasta, max_distance=4)
-    data.dump_sparse(filename + ".dist", threshold=3)
+    distances = hammingdist.from_fasta(args.afasta, max_distance=4)
+    distances.dump_sparse(filename + ".dist", threshold=3)
 
     # Perform MuRiT and Ripser analysis based on timeseries flag
     if args.timeseries is not False:
         print("MuRiT...")
         murit(
-            in_dist=filename + ".dist",
-            out_timedist=filename + ".timedist",
+            input_distance_file=filename + ".dist",
+            output_distance_file=filename + ".timedist",
             start_date=start_date,
             timerange=timerange,
             dates=dates,
