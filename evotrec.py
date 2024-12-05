@@ -221,8 +221,8 @@ def retrieve_snv_cycles(in_ripser):
             - snv_cycles (list): A list of cycles, where each cycle is represented
                 as a list of edges. Each edge is a list containing two vertices and
                 the length of the edge.
-            - snv_indices (list): A sorted list of unique sequences in the cycles.
-            TODO: why are these called snv_indices? These are not SNVs but sequence IDs
+            - snv_indices (list): A sorted list of pairs of indices in the cycles.
+            TODO: (Andreas) change variable name, update docstring
 
     Example:
         The input file should have the following structure:
@@ -269,9 +269,10 @@ def retrieve_snv_cycles(in_ripser):
                     cycle = []
                 cycle.append(stripped_line)
 
-        # Append the last cycle to the batch (and remove the first entry?)
+        # Append the last cycle to the batch
         batch.append(" ".join(cycle))
-        batch.pop(0)  # TODO: why is this necessary?
+        # remove the first entry: 'persistent homology intervals in dim 1:'
+        batch.pop(0)
 
     # Initialize lists to store SNV cycles and a set to store unique SNV indices
     snv_cycles = []
@@ -316,8 +317,8 @@ def retrieve_sequences_in_cycles(snv_indices, afasta_path):
     dictionary where the keys are the indices and the values are the sequences.
 
     Args:
-        snv_indices (list of int): A list of indices specifying which sequences
-                                   to retrieve from the FASTA file.
+        snv_indices (list of int): An increasing list of indices specifying which
+                sequences to retrieve from the FASTA file.
         afasta_path (str): The path to the FASTA file.
 
     Returns:
@@ -327,14 +328,6 @@ def retrieve_sequences_in_cycles(snv_indices, afasta_path):
     sequences = {}
     with open(afasta_path, "r") as file:
         for i, (_, seq) in enumerate(SimpleFastaParser(file)):
-            # try:
-            #     # Check if the current index matches the first index in snv_indices
-            #     if i == snv_indices[0]:
-            #         sequences[i] = seq  # Store the sequence in the dictionary
-            #         snv_indices.pop(0)  # Remove the first index from snv_indices
-            # except IndexError:
-            #     break
-            # TODO: I didn't understand the use of try-except above and replaced it
             if not snv_indices:
                 break  # Exit the loop if snv_indices is empty
             if i == snv_indices[0]:
@@ -456,6 +449,7 @@ def tri_analysis(mutations_in_snv_cycles, timerange, output_filename, timeseries
 
         # Iterate through each mutation, edge, and day in the mutations
         for mutation, edge, day in mutations:
+            #TODO: (Andreas) copy in correct version of the code
             if (mutation not in noted_snvs_in_cycle) and (edge not in noted_edges):
                 tri_count.setdefault(mutation, {})
                 tri_count[mutation].setdefault(day, 0)
