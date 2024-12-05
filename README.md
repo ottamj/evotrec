@@ -1,7 +1,7 @@
+![Python Version](https://img.shields.io/pypi/pyversions/hammingdist)
+![License](https://img.shields.io/github/license/ottamj/evotrec-prelim)
 
 # EVOtRec
-![Python Version](https://img.shields.io/pypi/pyversions/hammingdist)
-![License](https://img.shields.io/github/license/user/repo)
 
 ## Overview
 EVOTREC is a Python module designed for topological recurrence analysis of genome alignments using persistent homology. It processes sequence alignment data and returns the topological recurrence index (tRI) of the single nucleotide variations (SNV) recorded in the alignment.
@@ -93,8 +93,7 @@ and output files
     └── example.timedist
 ```
 
-### Citation
-TODO: (Max) Update arxiv link, bibtex citation
+## Citation
 
 If you use EVOTREC in your research, please cite the following references:
 
