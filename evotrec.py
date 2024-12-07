@@ -51,6 +51,30 @@ Main Execution:
         - Retrieving sequences and mutations in cycles
         - Performing tRI analysis and writing results to a CSV file
 """
+#Comments Max: 
+    # translation to refseq positions (siehe Ende von main())
+    # Bei Anpassung von tRI-Analyse muss man eventuell auch expand_timeseries (siehe comments in tri_analysis()) 
+    # Übergang zu Tupeln für edges: [[a,b],dist(a,b)] -> ((a,b),dist(a,b)) besseres Handling mit set() und weniger Speicherplatz
+
+    # Keine statische Analyse mehr: Stattdessen Datum SLICE_DATE = 'YYYY-MM-DD'<= end_date -> tRI_ouptut: 
+        # tRI_analysis_{ref_seq_date}_to_end_date
+        # tRI_analysis_slice_date = slice von tRI_analysis_slice_date
+
+    # Um Lesbarkeit von Code zu verbessern, aliases einfügen (baue ich gerade in das neue evotrec mit reduktionsalg etc ein):
+        # Edge = Tuple[int, int]               # Represents an edge between two nodes (i, j)
+        # EdgeWithLength = Tuple[Edge, int]    # Represents an edge with its associated length ((i, j), length)
+        # Cycle = List[EdgeWithLength]         # Represents a cycle as a list of edges with lengths
+        # Triangle = List[EdgeWithLength]      # Represents a triangle as a list of three edges with lengths
+        # Funktionsbeispiel:
+            # def identify_and_remove_noted_triangles(
+            #     cycles: List[Cycle],
+            #     triangles: List[Triangle]
+            # ) -> List[Cycle]:
+            # """
+            # DOC_STRING
+            # """
+            # ...CODE...
+            # return ...
 
 import os as os
 from Bio.SeqIO.FastaIO import SimpleFastaParser
@@ -483,6 +507,41 @@ def tri_analysis(mutations_in_snv_cycles, timerange, output_filename, timeseries
     else:
         print(f"Results written to {output_filename}.csv.")
 
+# Comment Max: ab # Iterate through each set of mutations in the cycles Code-Block ersetzen durch.
+# for mutations in mutations_in_snv_cycles:
+#         number_cycles+=1
+#         noted_snvs_in_cycle = []
+#         for mutation, edge, day in mutations: #edge length is time difference to start date + 1
+#             if edge not in noted_edges:
+#                 noted_edges.append(edge)
+#                 if mutation not in noted_snvs_in_cycle:
+#                     tri_count.setdefault(mutation, {})
+#                     tri_count[mutation].setdefault(day, 0)
+#                     tri_count[mutation][day] += 1
+#                     noted_snvs_in_cycle.append(mutation)
+#     tri_table = []
+#     for mutation, count in tri_count.items():
+#         tri_table.append(expand_timeseries(mutation, count, timerange))
+
+#     if len(tri_count) == 0:
+#         print('No tRI signal found.')
+
+#     print(f"Number of all SNV cycles: {number_cycles}\n")
+
+#     tri_table_df = pd.DataFrame(tri_table, columns=['POS', 'REF', 'ALT'] + [str(i) for i in range(1, timerange + 1)])
+
+#     return tri_table_df
+
+# Eventuell muss man dann expand_timeseries wie in evotrec2 nehmen:
+# def expand_timeseries(mutation, count, timerange):
+#     tri_timeseries = [mutation[0], mutation[1], mutation[2]]
+#     tri = 0
+#     for day in range(timerange):
+#         try: tri = tri + count[day+1]
+#         except: pass
+#         tri_timeseries.append(tri)
+
+#     return tri_timeseries
 
 if __name__ == "__main__":
     import argparse
@@ -576,3 +635,40 @@ if __name__ == "__main__":
         output_filename=filename,
         timeseries_flag=args.timeseries,
     )
+
+#Comment Max: code aus evotrec2:
+    # tri_table_df = tri_analysis(
+    #         filename=filename,
+    #         timeseries_flag=args.timeseries,
+    #         timerange=timerange,
+    #         mutations_in_snv_cycles=mutations_in_snv_cycles
+    #     )
+
+    #     def get_reference_site(row, **kwargs):
+    #         return kwargs['ref_positions'][row.loc['POS']-1]
+
+    #     def get_nt_mutation(row):
+    #         return row.loc['REF']+str(row.loc['REF_POS'])+row.loc['ALT']
+
+    # #    part_of_genome = ["test", 1, 10]
+    #     part_of_genome = ["spike", 21563, 25384]
+    # #    part_of_genome = ["whole", 266, 29674]
+
+    #     ref_positions = []
+    #     i = part_of_genome[1]
+    #     for x in refseq:
+    #         if x != '-':
+    #             ref_pos = i
+    #             i += 1
+    #         else:
+    #             ref_pos = -1
+    #         ref_positions.append(ref_pos)
+
+    #     tri_table_df['REF_POS'] = tri_table_df.apply(get_reference_site, axis=1, ref_positions=ref_positions)
+    #     tri_table_df['nt_mutation'] = tri_table_df.apply(get_nt_mutation, axis=1)
+    #     tri_table_df = tri_table_df.drop(columns=['POS', 'REF_POS', 'REF', 'ALT'])
+    #     tri_table_df = tri_table_df.set_index('nt_mutation')
+
+    #     print(tri_table_df)
+
+    #     tri_table_df.to_csv(f"{filename}_tri.csv")
