@@ -475,7 +475,7 @@ def tri_analysis(mutations_in_snv_cycles, timerange, output_filename, timeseries
     for mutations in mutations_in_snv_cycles:
         noted_snvs_in_cycle = []
         # Comment Max: Code-block für Site-Patterns
-        # # Identify site patterns >2.
+        # # Identify site patterns !=2.
         # # Note that in other cycles these SNVs can be realized in a 2-pattern.
         # # Therefore, the corresponding SNVs are ignored in the present cycle only.
         # for current_entry in mutations:
