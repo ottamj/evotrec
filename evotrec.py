@@ -487,40 +487,37 @@ def tri_analysis(mutations_in_snv_cycles, timerange, output_filename, timeseries
         # Iterate through each mutation, edge, and day in the mutations
 
         # Comment Max: Code-Block für Korrektur von Bedinungen für noted_edge und noted_snvs_in_cycle 
-        # for mutations in mutations_in_snv_cycles:
-        #         number_cycles+=1
-        #         noted_snvs_in_cycle = []
-        #         for mutation, edge, day in mutations: #edge length is time difference to start date + 1
-        #             if edge not in noted_edges:
-        #                 noted_edges.append(edge)
-        #                 if mutation not in noted_snvs_in_cycle:
-        #                     tri_count.setdefault(mutation, {})
-        #                     tri_count[mutation].setdefault(day, 0)
-        #                     tri_count[mutation][day] += 1
-        #                     noted_snvs_in_cycle.append(mutation)
-        #     tri_table = []
-        #     for mutation, count in tri_count.items():
-        #         tri_table.append(expand_timeseries(mutation, count, timerange))
+        # for mutation, edge, day in mutations: #edge length is time difference to start date + 1
+        #     if edge not in noted_edges:
+        #         noted_edges.append(edge)
+        #         if mutation not in noted_snvs_in_cycle:
+        #             tri_count.setdefault(mutation, {})
+        #             tri_count[mutation].setdefault(day, 0)
+        #             tri_count[mutation][day] += 1
+        #             noted_snvs_in_cycle.append(mutation)
+    # tri_table = []
+    # for mutation, count in tri_count.items():
+    #     tri_table.append(expand_timeseries(mutation, count, timerange))
 
-        #     if len(tri_count) == 0:
-        #         print('No tRI signal found.')
+    # if len(tri_count) == 0:
+    #     print('No tRI signal found.')
 
-        #     print(f"Number of all SNV cycles: {number_cycles}\n")
+    # tri_table_df = pd.DataFrame(tri_table, columns=['POS', 'REF', 'ALT'] + [str(i) for i in range(1, timerange + 1)])
 
-        #     tri_table_df = pd.DataFrame(tri_table, columns=['POS', 'REF', 'ALT'] + [str(i) for i in range(1, timerange + 1)])
+    # return tri_table_df
 
-        #     return tri_table_df
+# Eventuell muss man dann expand_timeseries wie in evotrec2 nehmen:
+# def expand_timeseries(mutation, count, timerange):
+#     tri_timeseries = [mutation[0], mutation[1], mutation[2]]
+#     tri = 0
+#     for day in range(timerange):
+#         try: tri = tri + count[day+1]
+#         except: pass
+#         tri_timeseries.append(tri)
 
-        # Eventuell muss man dann expand_timeseries wie in evotrec2 nehmen:
-        # def expand_timeseries(mutation, count, timerange):
-        #     tri_timeseries = [mutation[0], mutation[1], mutation[2]]
-        #     tri = 0
-        #     for day in range(timerange):
-        #         try: tri = tri + count[day+1]
-        #         except: pass
-        #         tri_timeseries.append(tri)
+#     return tri_timeseries
 
-        #     return tri_timeseries
+
         for mutation, edge, day in mutations:
             #TODO: (Andreas) copy in correct version of the code
             if (mutation not in noted_snvs_in_cycle) and (edge not in noted_edges):
