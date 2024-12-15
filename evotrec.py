@@ -52,6 +52,10 @@ Main Execution:
         - Performing tRI analysis and writing results to a CSV file
 """
 #Comments Max: 
+    # Meine neuen Analysen zeigen Site-Patterns >2 (also nicht nur Z/2Z sondern auch Z/3Z, Z/4Z)
+        # -> Entsprechend sollte man denke ich in tri_analysis(...) einen Codeblock ergänzen,
+        # der diese Fälle auschließt.
+        # -> Ich habe einen Vorschlag eingefügt (auskommentiert)
     # translation to refseq positions (siehe Ende von main())
     # Bei Anpassung von tRI-Analyse muss man eventuell auch expand_timeseries (siehe comments in tri_analysis()) 
     # Übergang zu Tupeln für edges: [[a,b],dist(a,b)] -> ((a,b),dist(a,b)) besseres Handling mit set() und weniger Speicherplatz
@@ -470,8 +474,53 @@ def tri_analysis(mutations_in_snv_cycles, timerange, output_filename, timeseries
     # Iterate through each set of mutations in the cycles
     for mutations in mutations_in_snv_cycles:
         noted_snvs_in_cycle = []
+        # Comment Max: Code-block für Site-Patterns
+        # # Identify site patterns >2.
+        # # Note that in other cycles these SNVs can be realized in a 2-pattern.
+        # # Therefore, the corresponding SNVs are ignored in the present cycle only.
+        # for current_entry in mutations:
+        #     number_of_sites = len([entry[0][0] for entry in mutations if entry[0][0] == current_entry[0][0]])
+        #     if number_of_sites > 2:
+        #         noted_snvs_in_cycle.append(current_entry[0])
+        
 
         # Iterate through each mutation, edge, and day in the mutations
+
+        # Comment Max: Code-Block für Korrektur von Bedinungen für noted_edge und noted_snvs_in_cycle 
+        # for mutations in mutations_in_snv_cycles:
+        #         number_cycles+=1
+        #         noted_snvs_in_cycle = []
+        #         for mutation, edge, day in mutations: #edge length is time difference to start date + 1
+        #             if edge not in noted_edges:
+        #                 noted_edges.append(edge)
+        #                 if mutation not in noted_snvs_in_cycle:
+        #                     tri_count.setdefault(mutation, {})
+        #                     tri_count[mutation].setdefault(day, 0)
+        #                     tri_count[mutation][day] += 1
+        #                     noted_snvs_in_cycle.append(mutation)
+        #     tri_table = []
+        #     for mutation, count in tri_count.items():
+        #         tri_table.append(expand_timeseries(mutation, count, timerange))
+
+        #     if len(tri_count) == 0:
+        #         print('No tRI signal found.')
+
+        #     print(f"Number of all SNV cycles: {number_cycles}\n")
+
+        #     tri_table_df = pd.DataFrame(tri_table, columns=['POS', 'REF', 'ALT'] + [str(i) for i in range(1, timerange + 1)])
+
+        #     return tri_table_df
+
+        # Eventuell muss man dann expand_timeseries wie in evotrec2 nehmen:
+        # def expand_timeseries(mutation, count, timerange):
+        #     tri_timeseries = [mutation[0], mutation[1], mutation[2]]
+        #     tri = 0
+        #     for day in range(timerange):
+        #         try: tri = tri + count[day+1]
+        #         except: pass
+        #         tri_timeseries.append(tri)
+
+        #     return tri_timeseries
         for mutation, edge, day in mutations:
             #TODO: (Andreas) copy in correct version of the code
             if (mutation not in noted_snvs_in_cycle) and (edge not in noted_edges):
@@ -507,41 +556,7 @@ def tri_analysis(mutations_in_snv_cycles, timerange, output_filename, timeseries
     else:
         print(f"Results written to {output_filename}.csv.")
 
-# Comment Max: ab # Iterate through each set of mutations in the cycles Code-Block ersetzen durch.
-# for mutations in mutations_in_snv_cycles:
-#         number_cycles+=1
-#         noted_snvs_in_cycle = []
-#         for mutation, edge, day in mutations: #edge length is time difference to start date + 1
-#             if edge not in noted_edges:
-#                 noted_edges.append(edge)
-#                 if mutation not in noted_snvs_in_cycle:
-#                     tri_count.setdefault(mutation, {})
-#                     tri_count[mutation].setdefault(day, 0)
-#                     tri_count[mutation][day] += 1
-#                     noted_snvs_in_cycle.append(mutation)
-#     tri_table = []
-#     for mutation, count in tri_count.items():
-#         tri_table.append(expand_timeseries(mutation, count, timerange))
 
-#     if len(tri_count) == 0:
-#         print('No tRI signal found.')
-
-#     print(f"Number of all SNV cycles: {number_cycles}\n")
-
-#     tri_table_df = pd.DataFrame(tri_table, columns=['POS', 'REF', 'ALT'] + [str(i) for i in range(1, timerange + 1)])
-
-#     return tri_table_df
-
-# Eventuell muss man dann expand_timeseries wie in evotrec2 nehmen:
-# def expand_timeseries(mutation, count, timerange):
-#     tri_timeseries = [mutation[0], mutation[1], mutation[2]]
-#     tri = 0
-#     for day in range(timerange):
-#         try: tri = tri + count[day+1]
-#         except: pass
-#         tri_timeseries.append(tri)
-
-#     return tri_timeseries
 
 if __name__ == "__main__":
     import argparse
