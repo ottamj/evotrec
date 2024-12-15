@@ -480,7 +480,7 @@ def tri_analysis(mutations_in_snv_cycles, timerange, output_filename, timeseries
         # # Therefore, the corresponding SNVs are ignored in the present cycle only.
         # for current_entry in mutations:
         #     number_of_sites = len([entry[0][0] for entry in mutations if entry[0][0] == current_entry[0][0]])
-        #     if number_of_sites > 2:
+        #     if number_of_sites != 2:
         #         noted_snvs_in_cycle.append(current_entry[0])
         
 
