@@ -390,13 +390,18 @@ def retrieve_mutations_in_cycles(snv_cycles, sequences_in_snv_cycles, refseq):
 
     for cycle in snv_cycles:
         mutations_per_cycle = []
-
+        # Comment Max: Handling of dash sites
+        # involved_sites = []
+        # involved_vertices = []
+        
         for edge, length in cycle:
             sequence_pair = []
 
             # Collect sequences for the vertices in the edge
             for vertex in edge:
                 sequence_pair.append(sequences_in_snv_cycles[vertex])
+                # Comment Max: Handling of dash sites
+                # involved_vertices.append(vertex)
 
             # Compare sequences site by site
             for site, pair in enumerate(
@@ -408,13 +413,34 @@ def retrieve_mutations_in_cycles(snv_cycles, sequences_in_snv_cycles, refseq):
                         mutations_per_cycle.append(
                             [(site, pair[0], pair[1]), edge, length]
                         )
+                        # Comment Max: Handling of dash sites
+                        # involved_sites.append(site)
                     elif pair[1] == refseq[site - 1]:
                         mutations_per_cycle.append(
                             [(site, pair[1], pair[0]), edge, length]
                         )
+                        # Comment Max: Handling of dash sites
+                        # involved_sites.append(site)
+
+        
+            # Comment Max: Handling of dash sites
+            # involved_sites = list(set(involved_sites))
+            # involved_vertices = list(set(involved_vertices))
+
+        # dash_flag = True
+        # for vertex in involved_vertices:
+        #     for site in involved_sites:
+        #         if sequences_in_snv_cycles[vertex][site - 1] == "-":
+        #             sequences_in_snv_cycles[vertex][site - 1]
+        #             dash_flag = False
+        # if dash_flag == False:
+        #    continue
 
         lengths = [length for _, _, length in mutations_per_cycle]
+        
+        
 
+        
         # Determine the maximum length in the cycle
         max_length = max(lengths) if lengths else 0
 
