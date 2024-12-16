@@ -56,6 +56,10 @@ Main Execution:
         # -> Entsprechend sollte man denke ich in tri_analysis(...) einen Codeblock ergänzen,
         # der diese Fälle auschließt.
         # -> Ich habe einen Vorschlag eingefügt (auskommentiert)
+    # Man sieht außerdem Site-Patterns =1 
+        # -> kann man lösen indem man SNV-Zykeln betrachtet bei denen alle Sequenzen im Zykel an den im 
+        # Zykel beteiligten Stellen keinen Dash haben
+        # -> entsprechende Code-Blöcke habe ich in retrieve_mutations_in_cycles(...) ergänzt.
     # translation to refseq positions (siehe Ende von main())
     # Bei Anpassung von tRI-Analyse muss man eventuell auch expand_timeseries (siehe comments in tri_analysis()) 
     # Übergang zu Tupeln für edges: [[a,b],dist(a,b)] -> ((a,b),dist(a,b)) besseres Handling mit set() und weniger Speicherplatz
