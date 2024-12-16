@@ -68,7 +68,7 @@ Main Execution:
         # tRI_analysis_{ref_seq_date}_to_end_date
         # tRI_analysis_slice_date = slice von tRI_analysis_slice_date
 
-    # Um Lesbarkeit von Code zu verbessern, aliases einfügen (baue ich gerade in das neue evotrec mit reduktionsalg etc ein):
+    # Um Lesbarkeit von Code zu verbessern, evtl. aliases einfügen. Code-Beispiel:u
         # Edge = Tuple[int, int]               # Represents an edge between two nodes (i, j)
         # EdgeWithLength = Tuple[Edge, int]    # Represents an edge with its associated length ((i, j), length)
         # Cycle = List[EdgeWithLength]         # Represents a cycle as a list of edges with lengths
