@@ -242,7 +242,7 @@ def retrieve_snv_cycles(in_ripser):
     This function reads a Ripser output file, identifies cycles in dimension 1, and
     extracts the cycle representatives. It returns the cycle representative and the
     indices of the sequences involved in these cycles.
-
+    TODO (edit Max): returns the exhaustive cycle representative
 
 
     Args:
@@ -269,10 +269,19 @@ def retrieve_snv_cycles(in_ripser):
         [1,2):
         {[0,1] (1), [0,2] (1), [1,3] (1), [2,3] (1)}
         {[0,1] (1), [0,2] (1), [1,3] (1), [2,3] (1)}
+        [1,2):
+        TODO (edit Max) 
+        [1,2):  
+        {[4101,7675] (1), [6638,7675] (1), [4101,7803] (1), [6638,7803] (1)}
+        {[4101,7675] (1), [6638,7675] (1), [4101,7803] (1), [6638,7803] (1)}
+        [1,2):  
+        {[3871,7691] (1), [4993,7691] (1), [3483,7800] (1), [4993,7800] (1), [3483,7801] (1), [3871,7801] (1)}
+        {[3871,7691] (1), [4993,7691] (1), [3483,7800] (1), [4993,7800] (1), [3483,7801] (1), [3871,7801] (1)}
         ... (other lines)
         ```
 
         Each interval [b,d) is a persistence interval, each {...} its representative.
+        TODO (edit Max): a persistence interval with two representatives, where the first/second one is the exhaustive representative.
         The lines under "persistence intervals in dim 1:" are the ones that are
         processed to extract the cycle representatives.
     """
@@ -327,7 +336,7 @@ def retrieve_snv_cycles(in_ripser):
             if length == 0:
                 zero_edge_flag = True  # Set flag if a zero-length edge is found
                 break
-
+        # TODO (edit Max): maybe remove -> we have no duplicates
         # If no zero-length edge is found, add the cycle and update SNV indices
         if zero_edge_flag is False:
             snv_cycles.append([[[pair[0][0], pair[0][1]], pair[1]] for pair in cycle])
