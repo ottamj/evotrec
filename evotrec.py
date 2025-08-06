@@ -89,6 +89,7 @@ Main Execution:
 #   return ...
 # 
 # Michael 2025-08-06
+# 5. erledigt
 # 7. erledigt
 
 import os
@@ -361,11 +362,11 @@ def retrieve_snv_cycles(in_ripser: str) -> Tuple[List[Cycle], List[int]]:
 
         # Process each piece of the raw cycle to extract edges and their lengths
         for piece in raw_cycle.split("{")[-1].split("[")[1:]:
-            edge = sorted(
+            edge = tuple(sorted(
                 [int(piece.split(",")[0]), int(piece.split(",")[1].split("]")[0])]
-            )
+            ))
             length = int(piece.split(")")[0].split("(")[-1])
-            cycle.append([edge, length])
+            cycle.append((edge, length))
             edges.append(edge)
             if length == 0:
                 zero_edge_flag = True  # Set flag if a zero-length edge is found
@@ -373,7 +374,7 @@ def retrieve_snv_cycles(in_ripser: str) -> Tuple[List[Cycle], List[int]]:
         # TODO (edit Max): maybe remove -> we have no duplicates
         # If no zero-length edge is found, add the cycle and update SNV indices
         if zero_edge_flag is False:
-            snv_cycles.append([[[pair[0][0], pair[0][1]], pair[1]] for pair in cycle])
+            snv_cycles.append([((pair[0][0], pair[0][1]), pair[1]) for pair in cycle])
             for edge in edges:
                 snv_indices.update(edge)
 
@@ -461,13 +462,13 @@ def retrieve_mutations_in_cycles(
                     # Check for mutations and ignore gaps
                     if pair[0] == refseq[site - 1]:
                         mutations_per_cycle.append(
-                            [(site, pair[0], pair[1]), edge, length]
+                            ((site, pair[0], pair[1]), edge, length)
                         )
                         # Comment Max: Handling of dash sites
                         # involved_sites.append(site)
                     elif pair[1] == refseq[site - 1]:
                         mutations_per_cycle.append(
-                            [(site, pair[1], pair[0]), edge, length]
+                            ((site, pair[1], pair[0]), edge, length)
                         )
                         # Comment Max: Handling of dash sites
                         # involved_sites.append(site)
@@ -492,7 +493,7 @@ def retrieve_mutations_in_cycles(
 
         # Update mutations with the maximum length
         mutations_per_cycle_max_length = [
-            [mutation, edge, max_length] for mutation, edge, _ in mutations_per_cycle
+            (mutation, edge, max_length) for mutation, edge, _ in mutations_per_cycle
         ]
 
         # Append the processed mutations for the current cycle

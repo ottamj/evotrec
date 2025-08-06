@@ -34,7 +34,7 @@ def setup_data():
         "in_ripser": "test.ripser",
         # for retrieve_sequences_in_cycles
         "sequences_in_snv_cycles": {0: "AA", 1: "AC", 2: "CA", 3: "CC"},
-        "snv_cycles": [[[[0, 1], 1], [[0, 2], 1], [[1, 3], 1], [[2, 3], 1]]],
+        "snv_cycles": [[((0, 1), 1), ((0, 2), 1), ((1, 3), 1), ((2, 3), 1)]],
         "snv_indices": [0, 1, 2, 3],
         # for retrieve_mutations_in_cycles
         "refseq": "AA",
@@ -43,7 +43,7 @@ def setup_data():
         "count": {0: 0, 1: 1, 2: 2, 3: 1},
         # for tri_analysis
         "output_filename": "test",
-        "mutations_in_snv_cycles": [[[(2, "A", "C"), [0, 1], 1]]],
+        "mutations_in_snv_cycles": [[(((2, "A", "C"), (0, 1), 1))]],
     }
 
 
@@ -122,7 +122,7 @@ def test_retrieve_snv_cycles(mocker, setup_data):
 
     # Verify the output
     assert result == (
-        [[[[0, 1], 1], [[0, 2], 1], [[1, 3], 1], [[2, 3], 1]]],
+        [[((0, 1), 1), ((0, 2), 1), ((1, 3), 1), ((2, 3), 1)]],
         [0, 1, 2, 3],
     )
 
@@ -156,10 +156,10 @@ def test_retrieve_mutations_in_cycles(setup_data):
     # Verify the output
     assert result == [
         [
-            [(2, "A", "C"), [0, 1], 1],
-            [(1, "A", "C"), [0, 2], 1],
-            [(1, "A", "C"), [1, 3], 1],
-            [(2, "A", "C"), [2, 3], 1],
+            ((2, "A", "C"), (0, 1), 1),
+            ((1, "A", "C"), (0, 2), 1),
+            ((1, "A", "C"), (1, 3), 1),
+            ((2, "A", "C"), (2, 3), 1),
         ]
     ]
 
