@@ -196,7 +196,7 @@ def test_tri_analysis(mocker, setup_data):
 
 def test_evotrec_pipeline():
     # Define the command to run the evotrec.py script
-    input_file = "tests/example.fasta"
+    input_file = "tests/test.fasta"
     ref_seq = "hCoV-19/Wuhan/WIV04/2019|EPI_ISL_402124|2019-12-30|China"
 
     command = ["python", "evotrec.py", input_file, ref_seq]
@@ -209,14 +209,14 @@ def test_evotrec_pipeline():
 
     # Compare the produced ripser output file with the expected ripser output file
     produced_ripser_output = input_file.replace(".fasta", ".ripser")
-    expected_ripser_output = "tests/expected_output.ripser"
+    expected_ripser_output = "tests/expected.ripser"
     assert filecmp.cmp(
         produced_ripser_output, expected_ripser_output
     ), "The produced ripser output does not match the expected output."
 
     # Compare the produced tri output file with the expected tri output file
     produced_tri_output = input_file.replace(".fasta", ".csv")
-    expected_tri_output = "tests/expected_output.csv"
+    expected_tri_output = "tests/expected.csv"
     assert filecmp.cmp(
         produced_tri_output, expected_tri_output
     ), "The produced tri output does not match the expected output."
@@ -224,7 +224,7 @@ def test_evotrec_pipeline():
 
 def test_evotrec_pipeline_timeseries():
     # Define the command to run the evotrec.py script with --timeseries flag
-    input_file = "tests/example.fasta"
+    input_file = "tests/test.fasta"
     ref_seq = "hCoV-19/Wuhan/WIV04/2019|EPI_ISL_402124|2019-12-30|China"
 
     command = ["python", "evotrec.py", input_file, ref_seq, "--timeseries"]
@@ -237,14 +237,14 @@ def test_evotrec_pipeline_timeseries():
 
     # Compare the produced ripser output file with the expected ripser output file
     produced_ripser_output = input_file.replace(".fasta", ".ripser")
-    expected_ripser_output = "tests/expected_timeseries_output.ripser"
+    expected_ripser_output = "tests/expected_timeseries.ripser"
     assert filecmp.cmp(
         produced_ripser_output, expected_ripser_output
     ), "The produced ripser output does not match the expected output."
 
     # Compare the produced tri output file with the expected tri output file
     produced_tri_output = input_file.replace(".fasta", ".csv")
-    expected_tri_output = "tests/expected_timeseries_output.csv"
+    expected_tri_output = "tests/expected_timeseries.csv"
     assert filecmp.cmp(
         produced_tri_output, expected_tri_output
     ), "The produced tri output does not match the expected output."

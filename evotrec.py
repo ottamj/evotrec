@@ -1,6 +1,6 @@
 ##################################################################################
 ##  evotrec.py                                                                  ##
-##  (c) 2024 Andreas Ott                                                        ##
+##  (c) 2024 Andreas Ott, Michael Bleher, Maximilian Neumann                    ##
 ##################################################################################
 """
 evotrec.py
@@ -89,6 +89,8 @@ Main Execution:
 #   return ...
 # 
 # Michael 2025-08-06
+# 3. mMn nicht sinnvoll
+# 4. 
 # 5. erledigt
 # 7. erledigt
 

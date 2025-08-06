@@ -1,8 +1,8 @@
 # Prevent result of tests from being uploaded to the repository
-tests/example.dist
-tests/example.timedist
-tests/example.ripser
-tests/example.csv
+examples/example.dist
+examples/example.timedist
+examples/example.ripser
+examples/example.csv
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -150,6 +150,9 @@ venv.bak/
 .mypy_cache/
 .dmypy.json
 dmypy.json
+
+# Ruff
+.ruff_cache/
 
 # Pyre type checker
 .pyre/

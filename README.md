@@ -1,73 +1,80 @@
 ![Python Version](https://img.shields.io/pypi/pyversions/hammingdist)
-![License](https://img.shields.io/github/license/ottamj/evotrec-prelim)
+![License](https://img.shields.io/github/license/ottamj/evotrec)
 
 # EVOtRec
 
+Topological recurrence analysis of genome alignments using persistent homology.
+
 ## Overview
-EVOTREC is a Python module designed for topological recurrence analysis of genome alignments using persistent homology. It processes sequence alignment data and returns the topological recurrence index (tRI) of the single nucleotide variations (SNV) recorded in the alignment.
 
-## Dependencies
-The module requires the following dependencies:
-- Python 3.x
-- Biopython
-- hammingdist
-- Ripser CLI (with representative cycles)
+EVOtRec is a Python module designed for topological recurrence analysis of genome alignments using persistent homology. It processes sequence alignment data and returns the topological recurrence index (tRI) of single nucleotide variations (SNVs) recorded in the alignment.
 
-You can install the *python dependencies* using `pip install -r requirements.txt`.
+TODO: Describe the purpose of EVOtRec and how it can be used in genomic studies.
 
-To install Ripser with tight representative cycles:
+
+## Prerequisites
+
+- **Python**: Version 3.8 or higher
+- **C++ Compiler**: Required for building Ripser (gcc/clang)
+- **Make**: For building Ripser from source
+
+## Installation
+
+### 1. Clone the Repository
+
+```sh
+git clone https://github.com/ottamj/evotrec.git
+cd evotrec
+```
+
+### 2. Install Python Dependencies
+
+The Python dependencies are:
+- **Biopython**: For sequence analysis and FASTA file handling
+- **hammingdist**: For efficient Hamming distance calculations
+
+To install these dependencies run:
+```sh
+pip install -r requirements.txt
+```
+
+
+### 3. Install Ripser CLI (with Representative Cycles)
+
+EVOtRec requires a special version of Ripser with representative cycles:
+
 ```sh
 git clone --branch tight-representative-cycles https://github.com/Ripser/ripser.git
 cd ripser
 make
 ./ripser examples/sphere_3_192.lower_distance_matrix
 ```
-and add the `ripser` executable to your PATH, e.g. by adding the following line to your `.bashrc` or `.bash_profile`:
+
+Add the `ripser` executable to your PATH by adding this line to your `.bashrc` or `.bash_profile`:
+
 ```sh
 export PATH=$PATH:/path/to/ripser
 ```
-For more information see the instructions provided in the [Ripser GitHub repository](https://github.com/Ripser/ripser/tree/tight-representative-cycles?tab=readme-ov-file#building).
 
-## Usage
-To use the EVOTREC module, follow these steps:
+For detailed installation instructions, see the [Ripser GitHub repository](https://github.com/Ripser/ripser/tree/tight-representative-cycles?tab=readme-ov-file#building).
 
-1. **Install Dependencies**:
+### 4. Verify Installation on Example Data
 
-2. **Prepare Input Files**:
-    - **FASTA File**: Prepare a FASTA file containing the sequence alignments.
-    - **Reference Sequence ID**: Identify the reference sequence ID within the FASTA file.
-    - **Time Series Analysis**: To perform time series analysis, the sequence headers must contain the date information in the format `|YYYY-MM-DD|`.
+You can test EVOtRec using the provided example alignment in the `examples/` directory.
 
-3. **Run the EVOTREC Script**:
-    ```sh
-    python evotrec.py <input_fasta> <refseq_id> [--timeseries]
-    ```
-    - `<input_fasta>`: Path to the input FASTA file.
-    - `<refseq_id>`: Reference sequence ID in the FASTA file.
-    - `--timeseries`: Optional flag to enable timeseries analysis.
-
-4. **Output Files**:
-    The script generates several output files:
-    - `<input_fasta>.dist`: Hamming distance file.
-    - `<input_fasta>.timedist`: Rips transformed distance file (if `--timeseries` is used).
-    - `<input_fasta>.ripser`: Ripser output file.
-    - `<input_fasta>.csv`: tRI analysis results in CSV format.
-
-
-## Example
-You can run evotrec on the provided test data as follows
 ```sh
-python evotrec.py tests/example.fasta "hCoV-19/Wuhan/WIV04/2019|EPI_ISL_402124|2019-12-30|China" --timeseries
+python evotrec.py examples/example.fasta "hCoV-19/Wuhan/WIV04/2019|EPI_ISL_402124|2019-12-30|China"
 ```
 
-This produces the following console output
-```sh
+The command produces the following console output:
+
+```
 ===============================================================
 EVOtRec -- Topological recurrence analysis of genome alignments
 (c) 2024 Andreas Ott
 ===============================================================
 
-Preparing tests/example.fasta...
+Preparing examples/example.fasta...
 
 Start date: 2019-12-30
 End date: 2021-09-30
@@ -82,20 +89,118 @@ Ripser...
 Analyzing cycles...
 Computing tRI...
 
-Results written to tests/example.csv.
+Results written to examples/example.csv.
 ```
-and output files
+
+After successful execution, the following text files will be created:
+
+```
+examples/
+├── example.csv      # tRI analysis results
+├── example.dist     # Hamming distance matrix
+├── example.ripser   # Ripser persistent homology output
+└── example.timedist # Time-transformed distance matrix
+```
+
+
+## Usage
+
+### Input Requirements
+
+1. **FASTA File**: A multiple sequence alignment file in FASTA format
+2. **Reference Sequence ID**: The identifier of the reference sequence within the FASTA file
+3. **Time Series Data** (optional): For temporal analysis, sequence headers must contain date information in the format `|YYYY-MM-DD|`
+
+### Basic Usage
+
 ```sh
-└── tests
-    ├── example.csv
-    ├── example.dist
-    ├── example.ripser
-    └── example.timedist
+python evotrec.py <input_fasta> <refseq_id> [--timeseries]
 ```
+
+- `<input_fasta>`: Path to the input FASTA file containing sequence alignments
+- `<refseq_id>`: Reference sequence identifier as it appears in the FASTA file
+- `--timeseries`: Optional flag to enable time series analysis (requires date information in headers)
+
+
+### Output
+
+The script generates several text files with the same base name as the input file and the following filename extensions:
+
+- **`<input_fasta>.dist`**: Hamming distance matrix between all sequences
+- **`<input_fasta>.timedist`**: Rips-transformed distance matrix (generated only with `--timeseries` flag)
+- **`<input_fasta>.ripser`**: Raw output from Ripser persistent homology computation
+- **`<input_fasta>.csv`**: Final results containing topological recurrence index (tRI) analysis
+
+The structure of `<input_fasta>.csv` depends on whether the `--timeseries` flag is used:
+
+- `POS`: Genomic position of the variation
+- `REF`: Reference nucleotide at this position
+- `ALT`: Alternative nucleotide (the mutation)
+
+**Without `--timeseries` flag:**
+- `TRI`: Topological recurrence index value for this variation
+
+**With `--timeseries` flag:**
+- `1,2,3,...,N`: Time-binned columns representing each day in the time range, where values indicate the topological recurrence index at each time point (0 = not present, higher values = increasing topological significance)
+
+
+## Support
+
+For questions, issues, or feature requests:
+
+1. Check the [Issues](https://github.com/ottamj/evotrec-prelim/issues) page
+2. Search existing issues before creating a new one
+3. Provide detailed information including:
+   - Operating system and Python version
+   - Input data characteristics
+   - Error messages (if any)
+   - Steps to reproduce the issue
+
+## Contributing
+
+We welcome contributions! Please follow these guidelines:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Make your changes and add tests
+4. Run the test suite (`pytest tests/`)
+5. Commit your changes (`git commit -m 'Add some amazing feature'`)
+6. Push to the branch (`git push origin feature/amazing-feature`)
+7. Open a Pull Request
+
+### Testing
+
+Run the pytest suite to verify all components produce the desired outputs:
+
+```sh
+pytest tests/
+```
+
+Or run tests with verbose output:
+
+```sh
+pytest -v tests/
+```
+
+The test suite includes:
+- **Unit tests**: Testing individual functions with mocked data
+- **Integration tests**: End-to-end testing with real example data
+- **Output validation**: Comparing results against expected outputs
+
+### Code Style
+
+- Follow PEP 8 for Python code style
+- Use meaningful variable and function names
+- Add docstrings for new functions
+- Include unit tests for new functionality
+
+## License
+
+This project is licensed under the terms specified in the LICENSE file.
 
 ## Citation
 
-If you use EVOTREC in your research, please cite the following references:
+If you use EVOtRec in your research, please cite the following references:
 
 ```bibtex
 @article{bleher2023topological,
