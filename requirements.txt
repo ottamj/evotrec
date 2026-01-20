@@ -1,0 +1,6 @@
+# Core dependencies
+biopython==1.86
+hammingdist==1.4.0
+
+# Development and testing, uncomment if needed
+# pytest>=8.3.4
