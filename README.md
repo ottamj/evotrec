@@ -36,7 +36,7 @@ To install these dependencies run:
 pip install -r requirements.txt
 ```
 
-*Note:* While we do not expect breaking changes in future versions of these dependencies, we cannot guarantee compatibility. It is recommended to test your installation with the provided example data.
+Note: While we do not expect breaking changes in future versions of these dependencies, we cannot guarantee compatibility. It is recommended to test your installation with the provided example data.
 
 ### 3. Install Ripser (with representative cycles)
 
@@ -123,7 +123,9 @@ examples/
 
 If any sequence header does not follow this format or contains an invalid date, EVOtRec will raise a `ValueError` with details about the problematic sequence.
 
-**Remark:** For best computational performance, we recommend that the input FASTA is sorted in reverse chronological order (newest sequences first).
+**Remarks:**
+- For best computational performance, we recommend that the input FASTA file is deduplicated by sequence and sorted in reverse chronological order (newest sequences first).
+- Hammingdist requires that input nucleotide sequences contain only the characters A, C, G, T or -.
 
 ### Basic usage
 
