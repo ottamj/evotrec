@@ -18,6 +18,8 @@ EVOtRec (topological Recurrence in EVOlution) is a Python module for the efficie
 
 ## Installation
 
+The installation of all required software should take no more than 10 minutes, and the expected runtime for each demo example is less than 1 minute (tested on a system with an 8-core CPU and 16 GB RAM).
+
 ### 1. Clone the repository
 
 ```sh
